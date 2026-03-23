@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neroo - Dino Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #e8e8e8 0%, #d4d4d4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', 'Segoe UI', monospace;
+            touch-action: manipulation;
+            padding: 16px;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        /* Dark Mode Body */
+        body.dark-mode {
+            background: linear-gradient(to bottom, #2a2a2a 0%, #1a1a1a 100%);
+        }
+
+        /* Container Game Responsif */
+        .game-container {
+            background: #f5f5f5;
+            border-radius: 16px;
+            padding: 16px 12px 20px 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 1px solid #ccc;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .game-container {
+            background: #2d2d2d;
+            border-color: #555;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            width: 100%;
+            height: auto;
+            background-color: #fafafa;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode canvas {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* HOME SCREEN STYLE */
+        .home-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+            transition: opacity 0.5s ease, visibility 0.5s ease, background 0.3s ease;
+        }
+
+        body.dark-mode .home-screen {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        }
+
+        .home-screen.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .home-card {
+            background: #f5f5f5;
+            border-radius: 32px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1px solid #d0d0d0;
+            max-width: 90%;
+            width: 500px;
+            animation: fadeInUp 0.6s ease-out;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        body.dark-mode .home-card {
+            background: #2d2d2d;
+            border-color: #555;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Settings Button - Pojok Kiri Atas */
+        .settings-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 15;
+        }
+
+        body.dark-mode .settings-btn {
+            color: #e0e0e0;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(45deg) scale(1.1);
+            text-shadow: 0 0 15px rgba(100, 100, 100, 0.5);
+        }
+
+        body.dark-mode .settings-btn:hover {
+            text-shadow: 0 0 15px rgba(200, 200, 200, 0.3);
+        }
+
+        .settings-btn:active {
+            transform: rotate(45deg) scale(0.98);
+        }
+
+        /* Setting Screen */
+        .setting-screen {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 50%;
+            height: 100%;
+            max-height: 80%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .setting-screen.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        body.dark-mode .setting-screen {
+            background: rgba(0, 0, 0, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Setting Content */
+        .setting-content {
+            animation: contentFadeIn 0.3s ease-out;
+        }
+
+        @keyframes contentFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Setting Item */
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .setting-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .setting-text {
+            color: #e0e0e0;
+        }
+
+        /* Toggle Button Small untuk Setting */
+        .toggle-switch-setting {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch-setting input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider-setting {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            transition: 0.3s;
+            border-radius: 34px;
+            border: 1px solid #aaa;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .toggle-slider-setting:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 2px;
+            background: linear-gradient(135deg, #f5f5f5 0%, #ddd 100%);
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            border: 1px solid #999;
+        }
+
+        input:checked + .toggle-slider-setting {
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%);
+            border-color: #666;
+        }
+
+        input:checked + .toggle-slider-setting:before {
+            transform: translateX(23px);
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+            border-color: #333;
+        }
+
+        .toggle-slider-setting::after {
+            content: "💡";
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        input:checked + .toggle-slider-setting::after {
+            content: "🌙";
+            right: auto;
+            left: 6px;
+        }
+
+        /* Difficulty Screen */
+        .difficulty-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-screen.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .difficulty-card {
+            background: rgba(245, 245, 245, 0.95);
+            border-radius: 32px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid #d0d0d0;
+            max-width: 90%;
+            width: 350px;
+            animation: fadeInUp 0.4s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .difficulty-card {
+            background: rgba(45, 45, 45, 0.95);
+            border-color: #555;
+        }
+
+        .difficulty-title {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 50%, #5a5a5a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        body.dark-mode .difficulty-title {
+            background: linear-gradient(135deg, #b0b0b0 0%, #e0e0e0 50%, #c0c0c0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .difficulty-btn {
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #999;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        body.dark-mode .difficulty-btn {
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%);
+            color: #e0e0e0;
+            box-shadow: 0 4px 0 #555;
+        }
+
+        .difficulty-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #999, 0 0 15px rgba(100, 100, 100, 0.5);
+            background: linear-gradient(135deg, #e8e8e8 0%, #c8c8c8 100%);
+        }
+
+        body.dark-mode .difficulty-btn:hover {
+            box-shadow: 0 6px 0 #555, 0 0 15px rgba(200, 200, 200, 0.3);
+            background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
+        }
+
+        .difficulty-btn:hover::before {
+            left: 100%;
+        }
+
+        .difficulty-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #999;
+        }
+
+        body.dark-mode .difficulty-btn:active {
+            box-shadow: 0 2px 0 #555;
+        }
+
+        /* Title Style - Pixel Retro */
+        .home-title {
+            font-family: 'Courier New', 'Press Start 2P', monospace;
+            font-size: 3rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 50%, #5a5a5a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 16px;
+            text-shadow: 3px 3px 0px rgba(100, 100, 100, 0.2);
+            animation: titlePulse 2s ease-in-out infinite;
+            margin-top: 10px;
+        }
+
+        body.dark-mode .home-title {
+            background: linear-gradient(135deg, #b0b0b0 0%, #e0e0e0 50%, #c0c0c0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% {
+                letter-spacing: 4px;
+                transform: scale(1);
+            }
+            50% {
+                letter-spacing: 6px;
+                transform: scale(1.02);
+            }
+        }
+
+        /* Subtitle Style */
+        .home-subtitle {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #5a5a5a;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+            border-top: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            display: inline-block;
+            padding: 8px 20px;
+        }
+
+        body.dark-mode .home-subtitle {
+            background: linear-gradient(135deg, #b0b0b0 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            border-color: #666;
+        }
+
+        /* Preview Game Container */
+        .game-preview {
+            margin: 20px 0 25px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .preview-canvas {
+            background: #fafafa;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border: 2px solid #d0d0d0;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .preview-canvas {
+            background: #3a3a3a;
+            border-color: #666;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Start Button */
+        .start-btn {
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            letter-spacing: 3px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #999, 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        body.dark-mode .start-btn {
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%);
+            color: #e0e0e0;
+            box-shadow: 0 5px 0 #555;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #999, 0 0 15px rgba(100, 100, 100, 0.5);
+            background: linear-gradient(135deg, #e8e8e8 0%, #c8c8c8 100%);
+        }
+
+        body.dark-mode .start-btn:hover {
+            box-shadow: 0 7px 0 #555, 0 0 15px rgba(200, 200, 200, 0.3);
+            background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
+        }
+
+        .start-btn:hover::before {
+            left: 100%;
+        }
+
+        .start-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #999;
+        }
+
+        .keybind-hint {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #777;
+            margin-top: 12px;
+            letter-spacing: 1px;
+            background: #e8e8e8;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        body.dark-mode .keybind-hint {
+            background: #3a3a3a;
+            color: #aaa;
+        }
+
+        .keybind-hint kbd {
+            background: #333;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 0 4px;
+            font-size: 0.8rem;
+        }
+
+        .start-btn.glow-effect {
+            animation: btnGlow 0.5s ease-out;
+        }
+
+        @keyframes btnGlow {
+            0% {
+                box-shadow: 0 5px 0 #999, 0 0 0 rgba(100, 100, 100, 0);
+            }
+            50% {
+                box-shadow: 0 5px 0 #999, 0 0 25px rgba(80, 80, 80, 0.8);
+            }
+            100% {
+                box-shadow: 0 5px 0 #999, 0 0 0 rgba(100, 100, 100, 0);
+            }
+        }
+
+        /* Responsif */
+        @media (max-width: 560px) {
+            .home-title {
+                font-size: 2rem;
+                letter-spacing: 3px;
+                margin-top: 5px;
+            }
+            .setting-screen {
+                width: 80%;
+            }
+            .settings-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 1.1rem;
+            }
+        }
+
+        /* In-game styles */
+        .title-area {
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .spooky-title {
+            font-family: 'Courier New', 'Press Start 2P', 'VT323', 'Creepster', monospace;
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            position: relative;
+            display: inline-block;
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 50%, #5a5a5a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 3px 3px 0px rgba(80, 80, 80, 0.4), -2px -1px 0px rgba(0, 0, 0, 0.2);
+            animation: spookyFloat 2s ease-in-out infinite, spookyGlitch 4s infinite;
+        }
+
+        body.dark-mode .spooky-title {
+            background: linear-gradient(135deg, #b0b0b0 0%, #e0e0e0 50%, #c0c0c0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        @keyframes spookyFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); text-shadow: 0px 3px 0px rgba(80, 80, 80, 0.4); }
+            50% { transform: translateY(-3px) rotate(0.5deg); text-shadow: 0px 5px 0px rgba(60, 60, 60, 0.6); }
+        }
+
+        @keyframes spookyGlitch {
+            0%, 100% { letter-spacing: 4px; filter: blur(0px); }
+            95% { letter-spacing: 6px; filter: blur(0.5px); }
+            96% { letter-spacing: 2px; filter: blur(1px); transform: skewX(2deg); }
+            97% { letter-spacing: 7px; filter: blur(0px); transform: skewX(-2deg); }
+            98% { letter-spacing: 3px; filter: blur(0.8px); transform: skewX(1deg); }
+            99% { letter-spacing: 5px; filter: blur(0.3px); transform: skewX(-1deg); }
+        }
+
+        .spooky-title::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 50%, #5a5a5a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: blur(4px);
+            opacity: 0.5;
+            animation: spookyBlurPulse 3s infinite;
+            z-index: -1;
+        }
+
+        @keyframes spookyBlurPulse {
+            0%, 100% { filter: blur(4px); opacity: 0.5; transform: translate(0, 0); }
+            50% { filter: blur(8px); opacity: 0.8; transform: translate(2px, 2px); }
+        }
+
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 16px;
+            margin-top: 4px;
+            padding: 0 8px;
+        }
+
+        .score-box, .best-box {
+            background: #ffffff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .score-box, body.dark-mode .best-box {
+            background: #3a3a3a;
+            border-color: #666;
+            color: #e0e0e0;
+        }
+
+        .score-box span, .best-box span { color: #5f5f5f; font-size: 0.9rem; }
+        body.dark-mode .score-box span, body.dark-mode .best-box span { color: #aaa; }
+        .score-box .score-value, .best-box .best-value { color: #2c2c2c; font-size: 1.5rem; font-weight: bold; margin-left: 8px; }
+        body.dark-mode .score-box .score-value, body.dark-mode .best-box .best-value { color: #e0e0e0; }
+
+        .jump-btn {
+            background: #e0e0e0;
+            border: 2px solid #aaa;
+            margin-top: 22px;
+            width: 100%;
+            padding: 16px 0;
+            border-radius: 12px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: #333;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 0 #999;
+            transition: 0.07s linear;
+            touch-action: manipulation;
+            cursor: pointer;
+            background-color: #ececec;
+        }
+
+        body.dark-mode .jump-btn {
+            background: #3a3a3a;
+            border-color: #666;
+            color: #e0e0e0;
+            box-shadow: 0 4px 0 #555;
+        }
+
+        .jump-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #999; }
+        body.dark-mode .jump-btn:active { box-shadow: 0 1px 0 #555; }
+
+        .status-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            gap: 12px;
+        }
+
+        .game-status {
+            background: #ffffff;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #555;
+            font-size: 0.85rem;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .game-status {
+            background: #3a3a3a;
+            border-color: #666;
+            color: #aaa;
+        }
+
+        .restart-btn {
+            background: #e0e0e0;
+            border: 1px solid #aaa;
+            padding: 6px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #333;
+            font-family: monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode .restart-btn {
+            background: #3a3a3a;
+            border-color: #666;
+            color: #e0e0e0;
+        }
+
+        .restart-btn:active { transform: scale(0.97); background: #d0d0d0; }
+        body.dark-mode .restart-btn:active { background: #2a2a2a; }
+
+        footer {
+            text-align: center;
+            font-size: 9px;
+            color: #888;
+            margin-top: 12px;
+        }
+
+        footer kbd {
+            background: #333;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 0 4px;
+            font-size: 0.8rem;
+        }
+
+        body.dark-mode footer { color: #aaa; }
+
+        @media (max-width: 560px) {
+            .spooky-title { font-size: 1.6rem; letter-spacing: 3px; }
+            .score-box, .best-box { padding: 4px 10px; font-size: 0.9rem; }
+            .score-value, .best-value { font-size: 1.2rem; }
+            .jump-btn { font-size: 1.6rem; padding: 12px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- backsound -->
+    <audio id="music" style="position: absolute;" hidden autoplay loop>
+        <source src="./Naomi - The Coffee Shop.mp3" type="audio/mpeg">
+    </audio>
+
+<div>
+    <div class="game-container">
+        <div class="title-area">
+            <div class="spooky-title" data-text="NEROO">NEROO</div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="score-box">
+                <span>🏆 SCORE</span>
+                <span class="score-value" id="scoreValue">0</span>
+            </div>
+            <div class="best-box">
+                <span>⭐ BEST</span>
+                <span class="best-value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="700" height="250"></canvas>
+
+        <div class="status-area">
+            <div class="game-status" id="gameStatusText">🏃‍♂️ RUNNING</div>
+            <div class="restart-btn" id="restartButton">⟳ RESTART</div>
+        </div>
+
+        <button class="jump-btn" id="jumpButton">▲ JUMP ▲</button>
+        <footer>tap / klik tombol <kbd>SPACE</kbd> layar untuk lompat</footer>
+    </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div class="home-screen" id="homeScreen">
+    <div class="home-card">
+        <!-- Settings Button -->
+        <div class="settings-btn" id="settingsBtn">⚙️</div>
+        
+        <div class="home-title">DINO-REMAKE</div>
+        <div class="home-subtitle">Create by Alif</div>
+        
+        <div class="game-preview">
+            <canvas id="previewCanvas" width="400" height="140" class="preview-canvas"></canvas>
+        </div>
+        
+        <button class="start-btn" id="startGameBtn">START GAME</button>
+        <div class="keybind-hint">
+            tekan <kbd>S</kbd> untuk start<i class="fa-solid fa-microchip" style="color: rgb(0, 0, 0);"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Setting Screen -->
+<div class="setting-screen" id="settingScreen">
+    <div class="setting-content">
+        <div class="setting-item">
+            <label class="toggle-switch-setting">
+                <input type="checkbox" id="themeToggleSetting">
+                <span class="toggle-slider-setting"></span>
+            </label>
+            <span class="setting-text" id="themeText">Light Mode</span>
+        </div>
+    </div>
+</div>
+
+<!-- Difficulty Screen -->
+<div class="difficulty-screen" id="difficultyScreen">
+    <div class="difficulty-card">
+        <div class="difficulty-title">SELECT DIFFICULTY</div>
+        <button class="difficulty-btn" id="easyDifficultyBtn">EASY</button>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const previewCtx = previewCanvas.getContext('2d');
+        const homeScreen = document.getElementById('homeScreen');
+        const startBtn = document.getElementById('startGameBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingScreen = document.getElementById('settingScreen');
+        const difficultyScreen = document.getElementById('difficultyScreen');
+        const themeToggleSetting = document.getElementById('themeToggleSetting');
+        const themeText = document.getElementById('themeText');
+        
+        let isDarkMode = false;
+        let gameStarted = false;
+        let selectedDifficulty = 'easy';
+        
+        const savedTheme = localStorage.getItem('chromeDinoTheme');
+        if (savedTheme === 'dark') {
+            isDarkMode = true;
+            document.body.classList.add('dark-mode');
+            themeToggleSetting.checked = true;
+            themeText.innerText = 'Dark Mode';
+        } else {
+            themeText.innerText = 'Light Mode';
+        }
+        
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('chromeDinoTheme', 'dark');
+                themeText.innerText = 'Dark Mode';
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('chromeDinoTheme', 'light');
+                themeText.innerText = 'Light Mode';
+            }
+            themeToggleSetting.checked = isDarkMode;
+        }
+        
+        themeToggleSetting.addEventListener('change', toggleTheme);
+        
+        settingsBtn.addEventListener('click', () => {
+            settingScreen.classList.toggle('active');
+        });
+        
+        settingScreen.addEventListener('click', (e) => {
+            if (e.target === settingScreen) {
+                settingScreen.classList.remove('active');
+            }
+        });
+        
+        let gameRunning = true;
+        let score = 0;
+        let bestScore = localStorage.getItem('chromeDinoBest') ? parseInt(localStorage.getItem('chromeDinoBest')) : 0;
+        document.getElementById('bestValue').innerText = bestScore;
+        
+        const dino = {
+            x: 60,
+            y: 0,
+            width: 24,
+            height: 28,
+            groundY: 0,
+            vy: 0,
+            gravity: 0.8,
+            jumpPower: -10.5,
+            isJumping: false,
+            frame: 0,
+            legCycle: 0
+        };
+        
+        let obstacles = [];
+        let frameCounter = 0;
+        let spawnGap = 75;
+        let baseSpeed = 4.5;
+        let currentSpeed = baseSpeed;
+        let groundYBase = 0;
+        let dustParticles = [];
+        let animationId = null;
+        let previewAnimationId = null;
+        
+        function updateDimensions() {
+            groundYBase = canvas.height - 40;
+            dino.groundY = groundYBase - dino.height;
+            if(!gameRunning || !gameStarted) {
+                dino.y = dino.groundY;
+            } else {
+                if(dino.y === 0 && dino.groundY) dino.y = dino.groundY;
+            }
+        }
+        
+        function resetGame() {
+            gameRunning = true;
+            score = 0;
+            updateScoreUI();
+            currentSpeed = baseSpeed;
+            obstacles = [];
+            frameCounter = 0;
+            dino.y = dino.groundY;
+            dino.vy = 0;
+            dino.isJumping = false;
+            dustParticles = [];
+            dino.frame = 0;
+            document.getElementById('gameStatusText').innerHTML = "🏃‍♂️ RUNNING";
+            document.getElementById('gameStatusText').style.color = isDarkMode ? "#aaa" : "#555";
+        }
+        
+        function jump() {
+            if (!gameStarted || !gameRunning) return;
+            if (dino.y >= dino.groundY - 1 && dino.vy === 0) {
+                dino.vy = dino.jumpPower;
+                dino.isJumping = true;
+                for(let i=0;i<3;i++){
+                    dustParticles.push({
+                        x: dino.x + dino.width/2,
+                        y: dino.y + dino.height - 2,
+                        vx: (Math.random() - 0.5)*1.5,
+                        vy: Math.random() * 1.5,
+                        life: 0.6,
+                        size: 2 + Math.random()*2
+                    });
+                }
+            }
+        }
+        
+        function updateScoreUI() {
+            document.getElementById('scoreValue').innerText = Math.floor(score);
+            if(score > bestScore) {
+                bestScore = Math.floor(score);
+                localStorage.setItem('chromeDinoBest', bestScore);
+                document.getElementById('bestValue').innerText = bestScore;
+            }
+        }
+        
+        function spawnObstacle() {
+            let obsType = Math.random() > 0.6 ? 'cactusTall' : 'cactusSmall';
+            let widthObs = obsType === 'cactusSmall' ? 12 : 18;
+            let heightObs = obsType === 'cactusSmall' ? 24 : 32;
+            obstacles.push({
+                x: canvas.width,
+                y: groundYBase - heightObs,
+                width: widthObs,
+                height: heightObs,
+                type: obsType
+            });
+        }
+        
+        function updateGame() {
+            if(!gameStarted || !gameRunning) return;
+            
+            dino.vy += dino.gravity;
+            dino.y += dino.vy;
+            if(dino.y >= dino.groundY) {
+                dino.y = dino.groundY;
+                dino.vy = 0;
+                dino.isJumping = false;
+            }
+            if(dino.y < 0) {
+                dino.y = 0;
+                if(dino.vy < 0) dino.vy = 0;
+            }
+            
+            if(!dino.isJumping && gameRunning) {
+                dino.frame++;
+                if(dino.frame > 10) dino.frame = 0;
+                dino.legCycle = Math.sin(dino.frame * 0.8) * 3;
+            } else {
+                dino.legCycle = 0;
+            }
+            
+            frameCounter++;
+            if(frameCounter >= spawnGap && gameRunning) {
+                frameCounter = 0;
+                if(Math.random() < 0.45 && obstacles.length < 2) {
+                    spawnObstacle();
+                }
+                spawnGap = Math.max(50, 75 - Math.floor(score / 450));
+            }
+            
+            for(let i=0; i<obstacles.length; i++) {
+                obstacles[i].x -= currentSpeed;
+                if(obstacles[i].x + obstacles[i].width < 0) {
+                    obstacles.splice(i,1);
+                    i--;
+                }
+            }
+            
+            for(let obs of obstacles) {
+                if(dino.x < obs.x + obs.width &&
+                    dino.x + dino.width > obs.x &&
+                    dino.y < obs.y + obs.height &&
+                    dino.y + dino.height > obs.y) {
+                    gameRunning = false;
+                    document.getElementById('gameStatusText').innerHTML = "💀 SKILL ISSUE 💀";
+                    document.getElementById('gameStatusText').style.color = isDarkMode ? "#fff" : "#333";
+                    break;
+                }
+            }
+            
+            if(gameRunning) {
+                score += 0.28;
+                updateScoreUI();
+                currentSpeed = Math.min(baseSpeed + Math.floor(score / 700), 10.5);
+            }
+            
+            if(gameRunning && !dino.isJumping && dino.y >= dino.groundY - 2 && Math.random()<0.25) {
+                dustParticles.push({
+                    x: dino.x + 5,
+                    y: dino.y + dino.height - 3,
+                    vx: (Math.random()-0.5)*0.6,
+                    vy: Math.random() * 0.8,
+                    life: 0.5,
+                    size: 2
+                });
+            }
+            
+            for(let i=0; i<dustParticles.length; i++) {
+                dustParticles[i].x += dustParticles[i].vx;
+                dustParticles[i].y += dustParticles[i].vy;
+                dustParticles[i].life -= 0.025;
+                if(dustParticles[i].life <= 0 || dustParticles[i].y > canvas.height) {
+                    dustParticles.splice(i,1);
+                    i--;
+                }
+            }
+        }
+        
+        function drawBackground(ctx_, width, height, groundY) {
+            if (isDarkMode) {
+                ctx_.fillStyle = "#2a2a2a";
+                ctx_.fillRect(0, 0, width, height);
+                ctx_.fillStyle = "#a0a0a0";
+                ctx_.fillRect(0, groundY, width, 3);
+                ctx_.fillStyle = "#c0c0c0";
+                ctx_.fillRect(0, groundY + 2, width, 2);
+                ctx_.strokeStyle = "#8a8a8a";
+            } else {
+                ctx_.fillStyle = "#fafafa";
+                ctx_.fillRect(0, 0, width, height);
+                ctx_.fillStyle = "#787878";
+                ctx_.fillRect(0, groundY, width, 3);
+                ctx_.fillStyle = "#a0a0a0";
+                ctx_.fillRect(0, groundY + 2, width, 2);
+                ctx_.strokeStyle = "#bcbcbc";
+            }
+            ctx_.lineWidth = 1;
+            for(let i=0; i<12; i++) {
+                ctx_.beginPath();
+                ctx_.moveTo(i*65, groundY - 2);
+                ctx_.lineTo(i*65 + 30, groundY - 5);
+                ctx_.stroke();
+            }
+        }
+        
+        function drawDino(ctx_, dinoData, legCycle) {
+            if (isDarkMode) {
+                ctx_.fillStyle = "#e0e0e0";
+                ctx_.fillRect(dinoData.x, dinoData.y, dinoData.width, dinoData.height);
+                ctx_.fillRect(dinoData.x + dinoData.width - 6, dinoData.y + 4, 8, 12);
+                ctx_.fillStyle = "#ffffff";
+                ctx_.fillRect(dinoData.x + dinoData.width - 8, dinoData.y + 7, 5, 5);
+                ctx_.fillStyle = "#cccccc";
+                ctx_.fillRect(dinoData.x + dinoData.width - 7, dinoData.y + 8, 2, 3);
+                ctx_.fillStyle = "#ffffff";
+                ctx_.fillRect(dinoData.x + dinoData.width - 8, dinoData.y + 8, 1, 1);
+                ctx_.strokeStyle = "#aaa";
+                ctx_.beginPath();
+                ctx_.moveTo(dinoData.x + dinoData.width - 4, dinoData.y + 12);
+                ctx_.lineTo(dinoData.x + dinoData.width - 1, dinoData.y + 12);
+                ctx_.stroke();
+                ctx_.fillStyle = "#ccc";
+                ctx_.fillRect(dinoData.x + dinoData.width - 3, dinoData.y + 13, 2, 2);
+                ctx_.fillStyle = "#e0e0e0";
+                ctx_.fillRect(dinoData.x + 4, dinoData.y + dinoData.height - 5, 6, 8);
+                let legOffset = Math.floor(legCycle);
+                ctx_.fillRect(dinoData.x + dinoData.width - 12, dinoData.y + dinoData.height - 6 + legOffset, 5, 10);
+                ctx_.beginPath();
+                ctx_.moveTo(dinoData.x - 5, dinoData.y + dinoData.height - 8);
+                ctx_.lineTo(dinoData.x, dinoData.y + dinoData.height - 5);
+                ctx_.lineTo(dinoData.x - 3, dinoData.y + dinoData.height - 3);
+                ctx_.fill();
+                ctx_.fillStyle = "#c0c0c0";
+                ctx_.fillRect(dinoData.x + 5, dinoData.y - 3, 4, 6);
+                ctx_.fillRect(dinoData.x + 12, dinoData.y - 2, 4, 5);
+            } else {
+                ctx_.fillStyle = "#2c2c2c";
+                ctx_.fillRect(dinoData.x, dinoData.y, dinoData.width, dinoData.height);
+                ctx_.fillRect(dinoData.x + dinoData.width - 6, dinoData.y + 4, 8, 12);
+                ctx_.fillStyle = "#ffffff";
+                ctx_.fillRect(dinoData.x + dinoData.width - 8, dinoData.y + 7, 5, 5);
+                ctx_.fillStyle = "#000000";
+                ctx_.fillRect(dinoData.x + dinoData.width - 7, dinoData.y + 8, 2, 3);
+                ctx_.fillStyle = "#ffffff";
+                ctx_.fillRect(dinoData.x + dinoData.width - 8, dinoData.y + 8, 1, 1);
+                ctx_.strokeStyle = "#1a1a1a";
+                ctx_.beginPath();
+                ctx_.moveTo(dinoData.x + dinoData.width - 4, dinoData.y + 12);
+                ctx_.lineTo(dinoData.x + dinoData.width - 1, dinoData.y + 12);
+                ctx_.stroke();
+                ctx_.fillStyle = "#f0f0f0";
+                ctx_.fillRect(dinoData.x + dinoData.width - 3, dinoData.y + 13, 2, 2);
+                ctx_.fillStyle = "#2c2c2c";
+                ctx_.fillRect(dinoData.x + 4, dinoData.y + dinoData.height - 5, 6, 8);
+                let legOffset = Math.floor(legCycle);
+                ctx_.fillRect(dinoData.x + dinoData.width - 12, dinoData.y + dinoData.height - 6 + legOffset, 5, 10);
+                ctx_.beginPath();
+                ctx_.moveTo(dinoData.x - 5, dinoData.y + dinoData.height - 8);
+                ctx_.lineTo(dinoData.x, dinoData.y + dinoData.height - 5);
+                ctx_.lineTo(dinoData.x - 3, dinoData.y + dinoData.height - 3);
+                ctx_.fill();
+                ctx_.fillStyle = "#3a3a3a";
+                ctx_.fillRect(dinoData.x + 5, dinoData.y - 3, 4, 6);
+                ctx_.fillRect(dinoData.x + 12, dinoData.y - 2, 4, 5);
+            }
+        }
+        
+        function drawObstacles(ctx_, obstaclesList) {
+            for(let obs of obstaclesList) {
+                if (isDarkMode) {
+                    ctx_.fillStyle = "#c0c0c0";
+                    ctx_.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx_.fillStyle = "#a0a0a0";
+                    if(obs.type === 'cactusSmall') {
+                        ctx_.fillRect(obs.x + 2, obs.y - 4, 3, 6);
+                        ctx_.fillRect(obs.x + 6, obs.y - 3, 3, 5);
+                    } else {
+                        ctx_.fillRect(obs.x + 3, obs.y - 5, 4, 7);
+                        ctx_.fillRect(obs.x + 10, obs.y - 4, 3, 6);
+                        ctx_.fillRect(obs.x + 5, obs.y + obs.height - 8, 4, 5);
+                    }
+                    ctx_.strokeStyle = "#8a8a8a";
+                } else {
+                    ctx_.fillStyle = "#3a3a3a";
+                    ctx_.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx_.fillStyle = "#2a2a2a";
+                    if(obs.type === 'cactusSmall') {
+                        ctx_.fillRect(obs.x + 2, obs.y - 4, 3, 6);
+                        ctx_.fillRect(obs.x + 6, obs.y - 3, 3, 5);
+                    } else {
+                        ctx_.fillRect(obs.x + 3, obs.y - 5, 4, 7);
+                        ctx_.fillRect(obs.x + 10, obs.y - 4, 3, 6);
+                        ctx_.fillRect(obs.x + 5, obs.y + obs.height - 8, 4, 5);
+                    }
+                    ctx_.strokeStyle = "#5a5a5a";
+                }
+                ctx_.lineWidth = 0.5;
+                ctx_.strokeRect(obs.x, obs.y, obs.width, obs.height);
+            }
+        }
+        
+        function drawClouds(ctx_, width, height) {
+            if (isDarkMode) { ctx_.fillStyle = "#5a5a5a"; } else { ctx_.fillStyle = "#dddddd"; }
+            let time = Date.now() / 3000;
+            let cloudX1 = (time * 8) % (width + 150) - 100;
+            let cloudX2 = (time * 12 + 200) % (width + 150) - 100;
+            ctx_.beginPath();
+            ctx_.ellipse(cloudX1, 40, 25, 18, 0, 0, Math.PI*2);
+            ctx_.ellipse(cloudX1 + 20, 35, 30, 20, 0, 0, Math.PI*2);
+            ctx_.ellipse(cloudX1 - 15, 45, 22, 16, 0, 0, Math.PI*2);
+            ctx_.fill();
+            ctx_.beginPath();
+            ctx_.ellipse(cloudX2, 70, 20, 15, 0, 0, Math.PI*2);
+            ctx_.ellipse(cloudX2 + 18, 65, 25, 18, 0, 0, Math.PI*2);
+            ctx_.ellipse(cloudX2 - 12, 75, 18, 14, 0, 0, Math.PI*2);
+            ctx_.fill();
+        }
+        
+        function drawParticles(ctx_, particles) {
+            for(let p of particles) {
+                ctx_.fillStyle = isDarkMode ? `rgba(200, 200, 200, ${p.life * 0.8})` : `rgba(100, 100, 100, ${p.life * 0.8})`;
+                ctx_.beginPath();
+                ctx_.arc(p.x, p.y, p.size * 0.7, 0, Math.PI * 2);
+                ctx_.fill();
+            }
+        }
+        
+        function drawGameOverlay(ctx_, width, height, gameStarted_, gameRunning_) {
+            if(gameStarted_ && !gameRunning_) {
+                ctx_.font = "bold 24px 'Courier New', monospace";
+                ctx_.fillStyle = isDarkMode ? "#aaa" : "#444444";
+                ctx_.fillText("GAME OVER", width/2-80, height/2-20);
+                ctx_.font = "12px monospace";
+                ctx_.fillStyle = isDarkMode ? "#888" : "#777";
+                ctx_.fillText("press RESTART", width/2-55, height/2+15);
+            }
+        }
+        
+        function animate() {
+            updateGame();
+            updateDimensions();
+            drawBackground(ctx, canvas.width, canvas.height, groundYBase);
+            drawClouds(ctx, canvas.width, canvas.height);
+            drawObstacles(ctx, obstacles);
+            drawDino(ctx, dino, dino.legCycle);
+            drawParticles(ctx, dustParticles);
+            drawGameOverlay(ctx, canvas.width, canvas.height, gameStarted, gameRunning);
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        let previewDino = { x: 50, y: 0, width: 20, height: 24, groundY: 0, vy: 0, isJumping: false, gravity: 0.7, legCycle: 0, frame: 0 };
+        let previewObstacles = [];
+        let previewFrameCounter = 0;
+        let previewGroundY = 0;
+        let previewSpeed = 3.2;
+        let previewRunning = true;
+        let jumpCooldown = 0;
+        
+        function updatePreview() {
+            if(!previewRunning) return;
+            previewGroundY = previewCanvas.height - 35;
+            previewDino.groundY = previewGroundY - previewDino.height;
+            previewDino.vy += previewDino.gravity;
+            previewDino.y += previewDino.vy;
+            if(previewDino.y >= previewDino.groundY) {
+                previewDino.y = previewDino.groundY;
+                previewDino.vy = 0;
+                previewDino.isJumping = false;
+            }
+            if(previewDino.y < 0) { previewDino.y = 0; if(previewDino.vy < 0) previewDino.vy = 0; }
+            if(!previewDino.isJumping) {
+                previewDino.frame++;
+                if(previewDino.frame > 10) previewDino.frame = 0;
+                previewDino.legCycle = Math.sin(previewDino.frame * 0.8) * 2.5;
+            } else { previewDino.legCycle = 0; }
+            if(jumpCooldown > 0) jumpCooldown--;
+            let shouldJump = false;
+            for(let obs of previewObstacles) {
+                const distanceToObs = obs.x - previewDino.x;
+                if(distanceToObs < 35 && distanceToObs > 5 && previewDino.y >= previewDino.groundY - 2 && !previewDino.isJumping && jumpCooldown === 0) {
+                    shouldJump = true;
+                    break;
+                }
+            }
+            if(shouldJump) { previewDino.vy = -9; previewDino.isJumping = true; jumpCooldown = 25; }
+            previewFrameCounter++;
+            if(previewFrameCounter >= 65 && previewObstacles.length < 2) {
+                previewFrameCounter = 0;
+                let obsType = Math.random() > 0.6 ? 'cactusTall' : 'cactusSmall';
+                let widthObs = obsType === 'cactusSmall' ? 10 : 15;
+                let heightObs = obsType === 'cactusSmall' ? 20 : 28;
+                previewObstacles.push({ x: previewCanvas.width, y: previewGroundY - heightObs, width: widthObs, height: heightObs, type: obsType });
+            }
+            for(let i=0; i<previewObstacles.length; i++) {
+                previewObstacles[i].x -= previewSpeed;
+                if(previewObstacles[i].x + previewObstacles[i].width < 0) { previewObstacles.splice(i,1); i--; }
+            }
+            for(let i=0; i<previewObstacles.length; i++) {
+                let obs = previewObstacles[i];
+                if(previewDino.x < obs.x + obs.width && previewDino.x + previewDino.width > obs.x &&
+                    previewDino.y < obs.y + obs.height && previewDino.y + previewDino.height > obs.y) {
+                    previewObstacles = []; previewFrameCounter = 0; previewDino.y = previewDino.groundY;
+                    previewDino.vy = 0; previewDino.isJumping = false; jumpCooldown = 0; break;
+                }
+            }
+        }
+        
+        function drawPreview() {
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            drawBackground(previewCtx, previewCanvas.width, previewCanvas.height, previewGroundY);
+            drawClouds(previewCtx, previewCanvas.width, previewCanvas.height);
+            drawObstacles(previewCtx, previewObstacles);
+            drawDino(previewCtx, previewDino, previewDino.legCycle);
+        }
+        
+        function animatePreview() {
+            updatePreview();
+            drawPreview();
+            previewAnimationId = requestAnimationFrame(animatePreview);
+        }
+        
+        function startGameWithDifficulty() {
+            difficultyScreen.classList.remove('active');
+            gameStarted = true;
+            gameRunning = true;
+            homeScreen.classList.add('hide');
+            resetGame();
+        }
+        
+        function showDifficultyScreen() {
+            difficultyScreen.classList.add('active');
+        }
+        
+        document.getElementById('easyDifficultyBtn').addEventListener('click', () => {
+            selectedDifficulty = 'easy';
+            baseSpeed = 4.5;
+            spawnGap = 75;
+            currentSpeed = baseSpeed;
+            startGameWithDifficulty();
+        });
+        
+        function attachEvents() {
+            const jumpBtn = document.getElementById('jumpButton');
+            const restartBtn = document.getElementById('restartButton');
+            
+            jumpBtn.addEventListener('click', (e) => { e.preventDefault(); if(gameStarted) jump(); });
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameStarted) jump(); });
+            canvas.addEventListener('mousedown', (e) => { e.preventDefault(); if(gameStarted) jump(); });
+            
+            restartBtn.addEventListener('click', () => {
+                if(gameStarted) {
+                    resetGame();
+                    gameRunning = true;
+                    currentSpeed = baseSpeed;
+                    obstacles = [];
+                    score = 0;
+                    updateScoreUI();
+                    dino.y = dino.groundY;
+                    dino.vy = 0;
+                    frameCounter = 0;
+                    dustParticles = [];
+                    document.getElementById('gameStatusText').innerHTML = "🏃‍♂️ RUNNING";
+                    document.getElementById('gameStatusText').style.color = isDarkMode ? "#aaa" : "#555";
+                }
+            });
+            
+            window.addEventListener('keydown', (e) => {
+                if((e.key === 's' || e.key === 'S') && !gameStarted) {
+                    e.preventDefault();
+                    showDifficultyScreen();
+                }
+                if(e.key === 'p' || e.key === 'P') {
+                    e.preventDefault();
+                    if(!gameStarted) {
+                        settingScreen.classList.toggle('active');
+                    }
+                }
+                if(gameStarted) {
+                    if(e.code === 'Space' || e.key === 'ArrowUp') { e.preventDefault(); jump(); }
+                    if(e.code === 'KeyR') { restartBtn.click(); }
+                }
+            });
+            
+            startBtn.addEventListener('click', () => {
+                showDifficultyScreen();
+            });
+        }
+        
+        function resizeCanvasDisplay() { updateDimensions(); }
+        window.addEventListener('resize', () => { resizeCanvasDisplay(); });
+        
+        function init() {
+            updateDimensions();
+            attachEvents();
+            previewGroundY = previewCanvas.height - 35;
+            previewDino.groundY = previewGroundY - previewDino.height;
+            previewDino.y = previewDino.groundY;
+            animate();
+            animatePreview();
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
