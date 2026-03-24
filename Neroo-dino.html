@@ -825,7 +825,7 @@
 <body>
 
 <!-- backsound -->
-    <audio id="music" style="position: absolute;" hidden autoplay loop>
+    <audio id="music" style="position: absolute;" controls hidden loop>
         <source src="./Naomi - The Coffee Shop.mp3" type="audio/mpeg">
     </audio>
 
@@ -871,7 +871,7 @@
             <canvas id="previewCanvas" width="400" height="200" class="preview-canvas"></canvas>
         </div>
         
-        <button class="start-btn" id="startGameBtn">START GAME</button>
+        <button class="start-btn" id="startGameBtn" onclick="setPlay()">START GAME</button>
         <div class="keybind-hint">
             tekan <kbd>S</kbd> untuk start<i class="fa-solid fa-microchip" style="color: rgb(0, 0, 0);"></i>
         </div>
