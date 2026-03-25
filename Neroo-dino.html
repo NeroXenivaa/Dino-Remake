@@ -216,6 +216,45 @@
             transform: rotate(45deg) scale(0.98);
         }
 
+        /* Creator button - pojok kanan atas */
+        .creator-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            border: 1px solid #aaa;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 15;
+            color: #333;
+        }
+
+        body.dark-mode .creator-btn {
+            background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%);
+            border-color: #666;
+            color: #e0e0e0;
+        }
+
+        .creator-btn:hover {
+            transform: rotate(45deg) scale(1.1);
+            background: linear-gradient(135deg, #e8e8e8 0%, #c8c8c8 100%);
+            box-shadow: 0 0 15px rgba(100, 100, 100, 0.5);
+        }
+
+        body.dark-mode .creator-btn:hover {
+            background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
+            box-shadow: 0 0 15px rgba(200, 200, 200, 0.3);
+        }
+
         /* Setting Screen */
         .setting-screen {
             position: fixed;
@@ -980,6 +1019,10 @@
         <div class="settings-btn" id="settingsBtn">
             <i class="fa-duotone fa-solid fa-gear"></i>
         </div>
+        <!-- Creator -->
+        <a href='https://www.instagram.com/alifarknnbl_?igsh=b2x6OHk4bGN1ZmRn' class="creator-btn" id="creatorsBtn">
+            <i class="fa-solid fa-instagram"></i>
+        </a>
         
         <div class="home-title">DINO REMAKE</div>
         <div class="home-subtitle">Create by Alif</div>
